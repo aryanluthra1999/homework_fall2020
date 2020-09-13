@@ -1,3 +1,4 @@
 *.pyc
 Idata/
 .idea/
+*.local

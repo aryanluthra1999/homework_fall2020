@@ -1,10 +1,11 @@
 from typing import Union
 
+import numpy as np
 import torch
 from torch import nn
+from cs285.policies.MLP_policy import MLPPolicy, MLPPolicySL
 
 Activation = Union[str, nn.Module]
-
 
 _str_to_activation = {
     'relu': nn.ReLU(),
@@ -15,6 +16,27 @@ _str_to_activation = {
     'softplus': nn.Softplus(),
     'identity': nn.Identity(),
 }
+
+
+class MLP(torch.nn.Module):
+    def __init__(self, in_size, out_size, num_layers, layer_size, in_activation, out_activation):
+        super(MLP, self).__init__()
+        self.start_layer = torch.nn.Linear(in_size, layer_size)
+        self.layers = [self.start_layer]
+        self.in_activation = in_activation
+        self.out_activation = out_activation
+        for i in range(num_layers):
+            self.layers.append(torch.nn.Linear(layer_size, layer_size))
+
+        self.out_layer = torch.nn.Linear(layer_size, out_size)
+
+    def forward(self, x):
+        if type(x) == np.ndarray:
+            x = torch.from_numpy(x)
+        for layer in self.layers:
+            x = self.in_activation(layer(x))
+
+        return self.out_activation(self.out_layer(x))
 
 
 def build_mlp(
@@ -47,7 +69,8 @@ def build_mlp(
 
     # TODO: return a MLP. This should be an instance of nn.Module
     # Note: nn.Sequential is an instance of nn.Module.
-    raise NotImplementedError
+
+    return MLP(input_size, output_size, n_layers, size, activation, output_activation)
 
 
 device = None
