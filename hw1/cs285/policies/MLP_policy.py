@@ -111,12 +111,12 @@ class MLPPolicySL(MLPPolicy):
     def update(self, observations, actions, adv_n=None, acs_labels_na=None, qvals=None):
         # TODO: update the policy and return the loss
         if type(observations) == np.ndarray:
-            observations = torch.from_numpy(observations)
+            observations = torch.tensor(observations, requires_grad=True)
 
         if type(actions) == np.ndarray:
-            actions = torch.from_numpy(actions)
+            actions = torch.tensor(actions, requires_grad=True)
 
-        print(observations.shape, actions.shape)
+        #print(observations.shape, actions.shape)
 
         loss = self.loss(self.get_action(observations), actions)
         self.optimizer.zero_grad()
