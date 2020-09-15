@@ -69,7 +69,6 @@ def sample_trajectories(env, policy, min_timesteps_per_batch, max_path_length, r
             trim_path(curr_traj, max_path_length)
             path_time = max_path_length
 
-
         paths.append(curr_traj)
         timesteps_this_batch += path_time
 
@@ -109,10 +108,10 @@ def Path(obs, image_obs, acs, rewards, next_obs, terminals):
             "next_observation": np.array(next_obs, dtype=np.float32),
             "terminal": np.array(terminals, dtype=np.float32)}
 
+
 def trim_path(path_dict, max_length):
     for key in path_dict:
         path_dict[key] = path_dict[key][:max_length]
-
 
 
 def convert_listofrollouts(paths, concat_rew=True):
