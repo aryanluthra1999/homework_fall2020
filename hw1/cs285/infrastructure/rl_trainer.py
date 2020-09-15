@@ -6,6 +6,7 @@ import time
 import gym
 import torch
 from cs285.policies.base_policy import BasePolicy
+from tqdm import tqdm
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.infrastructure.logger import Logger
@@ -174,7 +175,7 @@ class RL_Trainer(object):
         # HINT2: you want each of these collected rollouts to be of length self.params['ep_len']
         print("\nCollecting data to be used for training...")
         paths, envsteps_this_batch = utils.sample_trajectories(self.env, collect_policy,
-                                                               batch_size,
+                                                               self.params['batch_size'],
                                                                self.params['ep_len'])
 
         # collect more rollouts with the same policy, to be saved as videos in tensorboard

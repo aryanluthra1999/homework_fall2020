@@ -32,7 +32,7 @@ class MLP(torch.nn.Module):
 
     def forward(self, x):
         if type(x) == np.ndarray:
-            x = torch.from_numpy(x)
+            x = from_numpy(x)
 
         for layer in self.layers:
             x = self.in_activation(layer(x))

@@ -66,6 +66,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                 itertools.chain([self.logstd], self.mean_net.parameters()),
                 self.learning_rate
             )
+        print(self.mean_net)
 
     ##################################
 
@@ -81,12 +82,13 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             observation = obs[None]
 
         # TODO return the action that the policy prescribes
-        outputs = self.forward(obs)
-        return torch.argmax(outputs, dim=0)
+        outputs = self.forward(obs).unsqueeze(0)
+        # print(obs.shape, outputs.shape)
+        return ptu.to_numpy(outputs)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
-        loss = self.loss(self.get_action(observations), actions)
+        loss = self.loss(self.forward(observations), actions)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -97,7 +99,13 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor) -> Any:
-        return self.mean_net.forward(observation)
+        means = self.mean_net.forward(observation)
+        cov = torch.diag(torch.exp(self.logstd))
+        result = distributions.multivariate_normal.MultivariateNormal(means, cov).rsample()
+
+        # print(cov)
+        # print(observation.shape, result.shape)
+        return result
 
 
 #####################################################
@@ -111,14 +119,15 @@ class MLPPolicySL(MLPPolicy):
     def update(self, observations, actions, adv_n=None, acs_labels_na=None, qvals=None):
         # TODO: update the policy and return the loss
         if type(observations) == np.ndarray:
-            observations = torch.tensor(observations, requires_grad=True)
+            observations = ptu.from_numpy(observations)
 
         if type(actions) == np.ndarray:
-            actions = torch.tensor(actions, requires_grad=True)
+            actions = ptu.from_numpy(actions)
 
         #print(observations.shape, actions.shape)
 
-        loss = self.loss(self.get_action(observations), actions)
+        loss = self.loss(self.forward(observations), actions)
+        # print(loss)
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
