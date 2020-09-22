@@ -86,8 +86,16 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     # query the policy with observation(s) to get selected action(s)
     def get_action(self, obs: np.ndarray) -> np.ndarray:
-        # TODO: get this from hw1
-        return action
+        # TODO: got this from hw1
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+
+        # TODO return the action that the policy prescribes
+        outputs = self.forward(obs).unsqueeze(0)
+        # print(obs.shape, outputs.shape)
+        return ptu.to_numpy(outputs)
 
     # update/train this policy
     def update(self, observations, actions, **kwargs):
@@ -99,8 +107,14 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor):
-        # TODO: get this from hw1
-        return action_distribution
+        # TODO: got this from hw1
+        means = self.mean_net.forward(observation)
+        cov = torch.diag(torch.exp(self.logstd))
+        result = distributions.multivariate_normal.MultivariateNormal(means, cov).rsample()
+
+        # print(cov)
+        # print(observation.shape, result.shape)
+        return result
 
 
 #####################################################
