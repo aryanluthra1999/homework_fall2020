@@ -17,7 +17,7 @@ python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Ant.
 
 python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Ant.pkl --env_name Ant-v2 --exp_name bc_ant_3000 --n_iter 1 --expert_data cs285/expert_data/expert_data_Ant-v2.pkl --num_agent_train_steps_per_iter 3000 --size 128 --eval_batch_size 10000
 
-python cs285/scripts/run_hw1.py --expert_policy_file cs285/policies/experts/Ant.pkl --env_name Ant-v2 --exp_name bc_ant_5000 --n_iter 1 --expert_data cs285/expert_data/expert_data_Ant-v2.pkl --num_agent_train_steps_per_iter 5000 --size 128 --eval_batch_size 10000
+python cs285/scripts/run_****hw1.py --expert_policy_file cs285/policies/experts/Ant.pkl --env_name Ant-v2 --exp_name bc_ant_5000 --n_iter 1 --expert_data cs285/expert_data/expert_data_Ant-v2.pkl --num_agent_train_steps_per_iter 5000 --size 128 --eval_batch_size 10000
 
 
 --- Q2 ANT
