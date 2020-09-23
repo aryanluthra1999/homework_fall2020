@@ -14,6 +14,7 @@ _str_to_activation = {
     'selu': nn.SELU(),
     'softplus': nn.Softplus(),
     'identity': nn.Identity(),
+    'softmax' : nn.Softmax()
 }
 
 

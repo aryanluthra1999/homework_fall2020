@@ -1,3 +1,5 @@
+from abc import ABC
+
 import numpy as np
 
 from .base_agent import BaseAgent
@@ -46,9 +48,8 @@ class PGAgent(BaseAgent):
         advantages = self.estimate_advantage(observations, q_values)
 
         # TODO: step 3: use all datapoints (s_t, a_t, q_t, adv_t) to update the PG actor/policy
-        ## HINT: `train_log` should be returned by your actor update method
-        train_log = TODO
-
+        # HINT: `train_log` should be returned by your actor update method
+        train_log = self.actor.update(observations, actions, advantages, q_values)
         return train_log
 
     def calculate_q_vals(self, rewards_list):

@@ -42,7 +42,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             self.logits_na = ptu.build_mlp(input_size=self.ob_dim,
                                            output_size=self.ac_dim,
                                            n_layers=self.n_layers,
-                                           size=self.size)
+                                           size=self.size,
+                                           output_activation='softmax')
             self.logits_na.to(ptu.device)
             self.mean_net = None
             self.logstd = None
@@ -51,8 +52,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             self.logits_na = None
             self.mean_net = ptu.build_mlp(input_size=self.ob_dim,
-                                      output_size=self.ac_dim,
-                                      n_layers=self.n_layers, size=self.size)
+                                          output_size=self.ac_dim,
+                                          n_layers=self.n_layers, size=self.size)
             self.logstd = nn.Parameter(
                 torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
             )
@@ -93,7 +94,10 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             observation = obs[None]
 
-        outputs = self.forward(obs).unsqueeze(0)
+        obs = ptu.from_numpy(obs)
+
+        outputs = self.forward(obs).sample().unsqueeze(0)
+
         # print(obs.shape, outputs.shape)
         return ptu.to_numpy(outputs)
 
@@ -108,12 +112,15 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor):
         # TODO: got this from hw1
-        means = self.mean_net.forward(observation)
-        cov = torch.diag(torch.exp(self.logstd))
-        result = distributions.multivariate_normal.MultivariateNormal(means, cov).rsample()
-
-        # print(cov)
-        # print(observation.shape, result.shape)
+        if not self.discrete:
+            means = self.mean_net.forward(observation)
+            cov = torch.diag(torch.exp(self.logstd))
+            result = distributions.multivariate_normal.MultivariateNormal(means, cov)
+            # print(cov)
+            # print(observation.shape, result.shape)
+        else:
+            logits = self.logits_na.forward(observation)
+            result = distributions.Categorical(logits)
         return result
 
 
@@ -133,14 +140,16 @@ class MLPPolicyPG(MLPPolicy):
 
         # TODO: compute the loss that should be optimized when training with policy gradient
         # HINT1: Recall that the expression that we want to MAXIMIZE
-            # is the expectation over collected trajectories of:
-            # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
+        # is the expectation over collected trajectories of:
+        # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
         # HINT2: you will want to use the `log_prob` method on the distribution returned
-            # by the `forward` method
+        # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
 
-        logits = self.forward(observations)
-        loss = sum()
+        action_dist = self.forward(observations)
+        log_pi = action_dist.log_prob(actions)
+        print(observations.shape)
+        loss = - torch.sum(log_pi * advantages)
 
         # TODO: optimize `loss` using `self.optimizer`
         # HINT: remember to `zero_grad` first
@@ -151,17 +160,21 @@ class MLPPolicyPG(MLPPolicy):
         if self.nn_baseline:
             ## TODO: normalize the q_values to have a mean of zero and a standard deviation of one
             ## HINT: there is a `normalize` function in `infrastructure.utils`
-            targets = utils.normalize(q_values, np.mean(q_values), np.std(q_values))
+            if q_values is None:
+                targets = utils.normalize(advantages, np.mean(q_values), np.std(q_values))
+            else:
+                targets = utils.normalize(q_values, np.mean(q_values), np.std(q_values))
             targets = ptu.from_numpy(targets)
 
             ## TODO: use the `forward` method of `self.baseline` to get baseline predictions
-            baseline_predictions = self.baseline.forward(observations)
-            
+            baseline_predictions = self.baseline.forward(observations).squeeze(1)
+
             ## avoid any subtle broadcasting bugs that can arise when dealing with arrays of shape
             ## [ N ] versus shape [ N x 1 ]
             ## HINT: you can use `squeeze` on torch tensors to remove dimensions of size 1
-            assert baseline_predictions.shape == targets.shape
-            
+            assert baseline_predictions.shape == targets.shape, f"shapes do not match, pred_shape: " \
+                                                                f" {baseline_predictions.shape} \t target shape {targets.shape}"
+
             # TODO: compute the loss that should be optimized for training the baseline MLP (`self.baseline`)
             # HINT: use `F.mse_loss`
             baseline_loss = F.mse_loss(baseline_predictions, targets)
@@ -190,4 +203,3 @@ class MLPPolicyPG(MLPPolicy):
         obs = ptu.from_numpy(obs)
         predictions = self.baseline(obs)
         return ptu.to_numpy(predictions)[:, 0]
-

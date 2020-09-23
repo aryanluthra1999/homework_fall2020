@@ -4,10 +4,10 @@ import time
 from cs285.infrastructure.rl_trainer import RL_Trainer
 from cs285.agents.pg_agent import PGAgent
 
+
 class PG_Trainer(object):
 
     def __init__(self, params):
-
         #####################
         ## SET AGENT PARAMS
         #####################
@@ -16,11 +16,11 @@ class PG_Trainer(object):
             'n_layers': params['n_layers'],
             'size': params['size'],
             'learning_rate': params['learning_rate'],
-            }
+        }
 
         estimate_advantage_args = {
             'gamma': params['discount'],
-            'standardize_advantages': not(params['dont_standardize_advantages']),
+            'standardize_advantages': not (params['dont_standardize_advantages']),
             'reward_to_go': params['reward_to_go'],
             'nn_baseline': params['nn_baseline'],
         }
@@ -43,16 +43,14 @@ class PG_Trainer(object):
         self.rl_trainer = RL_Trainer(self.params)
 
     def run_training_loop(self):
-
         self.rl_trainer.run_training_loop(
             self.params['n_iter'],
-            collect_policy = self.rl_trainer.agent.actor,
-            eval_policy = self.rl_trainer.agent.actor,
-            )
+            collect_policy=self.rl_trainer.agent.actor,
+            eval_policy=self.rl_trainer.agent.actor,
+        )
 
 
 def main():
-
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--env_name', type=str)
@@ -62,8 +60,8 @@ def main():
     parser.add_argument('--reward_to_go', '-rtg', action='store_true')
     parser.add_argument('--nn_baseline', action='store_true')
     parser.add_argument('--dont_standardize_advantages', '-dsa', action='store_true')
-    parser.add_argument('--batch_size', '-b', type=int, default=1000) #steps collected per train iteration
-    parser.add_argument('--eval_batch_size', '-eb', type=int, default=400) #steps collected per eval iteration
+    parser.add_argument('--batch_size', '-b', type=int, default=1000)  # steps collected per train iteration
+    parser.add_argument('--eval_batch_size', '-eb', type=int, default=400)  # steps collected per eval iteration
 
     parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1)
     parser.add_argument('--discount', type=float, default=1.0)
@@ -71,7 +69,7 @@ def main():
     parser.add_argument('--n_layers', '-l', type=int, default=2)
     parser.add_argument('--size', '-s', type=int, default=64)
 
-    parser.add_argument('--ep_len', type=int) #students shouldn't change this away from env's default
+    parser.add_argument('--ep_len', type=int)  # students shouldn't change this away from env's default
     parser.add_argument('--seed', type=int, default=1)
     parser.add_argument('--no_gpu', '-ngpu', action='store_true')
     parser.add_argument('--which_gpu', '-gpu_id', default=0)
@@ -100,7 +98,7 @@ def main():
     logdir = args.exp_name + '_' + args.env_name + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
     logdir = os.path.join(data_path, logdir)
     params['logdir'] = logdir
-    if not(os.path.exists(logdir)):
+    if not (os.path.exists(logdir)):
         os.makedirs(logdir)
 
     ###################
