@@ -85,9 +85,9 @@ class DQNCritic(BaseCritic):
         target = reward_n + self.gamma * q_tp1 * (1-terminal_n)
         target = target.detach()
 
-        print(target.shape, q_t_values.shape)
+        # print(target.shape, q_t_values.shape)
         assert q_t_values.shape == target.shape
-        print(target, q_t_values)
+        # print(target, q_t_values)
 
         self.optimizer.zero_grad()
         loss = self.loss(q_t_values, target)

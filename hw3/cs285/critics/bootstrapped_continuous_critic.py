@@ -98,5 +98,4 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
                 loss.backward()
                 self.optimizer.step()
 
-
         return loss.item()
