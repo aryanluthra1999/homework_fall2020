@@ -67,7 +67,7 @@ class DQNAgent(object):
             # and then use those observations as input to your actor.
             last_frame = self.replay_buffer.encode_recent_observation()
             action = self.actor.get_action(last_frame).item()
-            print(action)
+            # print(action)
 
         if type(action) is torch.tensor:
             action = ptu.to_numpy(action)
@@ -76,8 +76,8 @@ class DQNAgent(object):
         # HINT1: remember that self.last_obs must always point to the newest/latest observation
         # HINT2: remember the following useful function that you've seen before:
         #action  = ptu.from_numpy(action)
-        obs, reward, done, info = self.env.step(action)
-        self.last_obs = obs
+        next_obs, reward, done, info = self.env.step(action)
+        self.last_obs = next_obs
 
         # TODO store the result of taking this action into the replay buffer
         # HINT1: see your replay buffer's `store_effect` function
@@ -102,6 +102,7 @@ class DQNAgent(object):
         ):
 
             # TODO fill in the call to the update function using the appropriate tensors
+            # log = self.actor.update(ob_no, ac_na, next_ob_no, re_n, terminal_n)
             log = self.critic.update(ob_no, ac_na, next_ob_no, re_n, terminal_n)
 
             # TODO update the target network periodically 

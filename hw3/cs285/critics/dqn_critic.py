@@ -66,7 +66,7 @@ class DQNCritic(BaseCritic):
         q_t_values = torch.gather(qa_t_values, 1, ac_na.unsqueeze(1)).squeeze(1)
 
         # TODO compute the Q-values from the target network DONE
-        qa_tp1_values = self.q_net_target(ob_no)
+        qa_tp1_values = self.q_net_target(next_ob_no)
 
         if self.double_q:
             # You must fill this part for Q2 of the Q-learning portion of the homework.
@@ -85,10 +85,12 @@ class DQNCritic(BaseCritic):
         target = reward_n + self.gamma * q_tp1 * (1-terminal_n)
         target = target.detach()
 
+        print(target.shape, q_t_values.shape)
         assert q_t_values.shape == target.shape
-        loss = self.loss(q_t_values, target)
+        print(target, q_t_values)
 
         self.optimizer.zero_grad()
+        loss = self.loss(q_t_values, target)
         loss.backward()
         utils.clip_grad_value_(self.q_net.parameters(), self.grad_norm_clipping)
         self.optimizer.step()
