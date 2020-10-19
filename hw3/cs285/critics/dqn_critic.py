@@ -74,7 +74,9 @@ class DQNCritic(BaseCritic):
             # is being updated, but the Q-value for this action is obtained from the
             # target Q-network. See page 5 of https://arxiv.org/pdf/1509.06461.pdf for more details.
             # TODO
-            q_tp1, _ = qa_tp1_values.max(dim=1) # TODO CHANGE THIS
+            curr_net_obs = self.q_net(next_ob_no)
+            curr_net_obs_argmax = torch.argmax(curr_net_obs, dim = 1)
+            q_tp1, _ = qa_tp1_values[curr_net_obs_argmax] # TODO CHANGE THIS
 
         else:
             q_tp1, _ = qa_tp1_values.max(dim=1)
