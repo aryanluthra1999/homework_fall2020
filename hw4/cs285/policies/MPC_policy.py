@@ -34,6 +34,7 @@ class MPCPolicy(BasePolicy):
         # TODO(Q1) uniformly sample trajectories and return an array of
         # dimensions (num_sequences, horizon, self.ac_dim) in the range
         # [self.low, self.high]
+        random_action_sequences = np.random.uniform(self.low, self.high, size=[num_sequences, horizon, self.ac_dim])
         return random_action_sequences
 
     def get_action(self, obs):
@@ -49,8 +50,7 @@ class MPCPolicy(BasePolicy):
         # for each model in ensemble:
         predicted_sum_of_rewards_per_model = []
         for model in self.dyn_models:
-            sum_of_rewards = self.calculate_sum_of_rewards(
-                obs, candidate_action_sequences, model)
+            sum_of_rewards = self.calculate_sum_of_rewards(obs, candidate_action_sequences, model)
             predicted_sum_of_rewards_per_model.append(sum_of_rewards)
 
         # calculate mean_across_ensembles(predicted rewards)
