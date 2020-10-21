@@ -19,6 +19,7 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         Note: batch self.size /n/ is defined at runtime.
         is None
     """
+
     def __init__(self, hparams):
         super().__init__()
         self.ob_dim = hparams['ob_dim']
@@ -86,15 +87,25 @@ class BootstrappedContinuousCritic(nn.Module, BaseCritic):
         # HINT: make sure to squeeze the output of the critic_network to ensure
         #       that its dimensions match the reward
 
+        ob_no = ptu.from_numpy(ob_no)
+        ac_na = ptu.from_numpy(ac_na)
+        next_ob_no = ptu.from_numpy(next_ob_no)
+        reward_n = ptu.from_numpy(reward_n)
+        terminal_n = ptu.from_numpy(terminal_n)
+
+        # print(ob_no.shape, next_ob_no.shape)
+
         loss = 0
         for i in range(self.num_target_updates):
-            V_s_prime = self.critic_network(next_ob_no).squeeze()
+            V_s_prime = self.forward(next_ob_no)
             target_vals = reward_n + self.gamma * V_s_prime * (1 - terminal_n)
+            target_vals = target_vals.detach()
             for j in range(self.num_grad_steps_per_target_update):
-                pred_vals = self.critic_network(ob_no)
+                pred_vals = self.forward(ob_no)
+                assert pred_vals.shape == target_vals.shape
 
                 self.optimizer.zero_grad()
-                loss = self.loss(pred_vals, target_vals)
+                loss = self.loss(target_vals, pred_vals)
                 loss.backward()
                 self.optimizer.step()
 
