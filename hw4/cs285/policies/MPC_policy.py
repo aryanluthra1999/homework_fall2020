@@ -31,7 +31,7 @@ class MPCPolicy(BasePolicy):
         self.high = self.ac_space.high
 
     def sample_action_sequences(self, num_sequences, horizon):
-        # TODO(Q1) uniformly sample trajectories and return an array of
+        # TODO(Q1) uniformly sample trajectories and return an array of DONE
         # dimensions (num_sequences, horizon, self.ac_dim) in the range
         # [self.low, self.high]
         random_action_sequences = np.random.uniform(self.low, self.high, size=[num_sequences, horizon, self.ac_dim])
@@ -58,8 +58,8 @@ class MPCPolicy(BasePolicy):
             predicted_sum_of_rewards_per_model, axis=0)  # [ens, N] --> N
 
         # pick the action sequence and return the 1st element of that sequence
-        best_action_sequence = None  # TODO (Q2)
-        action_to_take = None  # TODO (Q2)
+        best_action_sequence = candidate_action_sequences[np.argmax(predicted_rewards)]  # TODO (Q2) DONE
+        action_to_take = best_action_sequence[0]  # TODO (Q2) DONE
         return action_to_take[None]  # Unsqueeze the first index
 
     def calculate_sum_of_rewards(self, obs, candidate_action_sequences, model):
@@ -75,7 +75,7 @@ class MPCPolicy(BasePolicy):
         :return: numpy array with the sum of rewards for each action sequence.
         The array should have shape [N].
         """
-        sum_of_rewards = None  # TODO (Q2)
+
         # For each candidate action sequence, predict a sequence of
         # states for each dynamics model in your ensemble.
         # Once you have a sequence of predicted states from each model in
@@ -87,4 +87,19 @@ class MPCPolicy(BasePolicy):
         # Hint: Remember that the model can process observations and actions
         #       in batch, which can be much faster than looping through each
         #       action sequence.
-        return sum_of_rewards
+        N, H, D_ac = candidate_action_sequences.shape
+        # print(N, H, D_ac)
+        sum_of_rewards = np.zeros(N)  # TODO (Q2) DONE
+        if len(obs.shape) <= 1:
+            obs = obs[None]
+
+        obs = np.tile(obs, (N, 1))
+        for i in range(self.horizon):
+            # print(i)
+            acs = candidate_action_sequences[:, i, :]
+            # print(obs.shape, acs.shape)
+            to_add = self.env.get_reward(obs, acs)[0]
+            obs = model.get_prediction(obs, acs, self.data_statistics)
+            sum_of_rewards += to_add
+
+        return sum_of_rewards / len(self.dyn_models)
