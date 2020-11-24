@@ -58,8 +58,7 @@ def mean_squared_error(a, b):
 ############################################
 
 def sample_trajectory(env, policy, max_path_length, render=False, render_mode=('rgb_array')):
-    raise NotImplementedError
-    # TODO: get this from hw1 or hw2
+    # TODO: get this from hw1 or hw2 DONE
     # IMPORTANT CHANGE: Comment out the line: ac = ac[0], as Argmax Policy already returns a scalar
     ob = env.reset()
     obs, acs, rewards, next_obs, terminals, image_obs = [], [], [], [], [], []

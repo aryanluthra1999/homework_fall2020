@@ -12,7 +12,6 @@ class ArgMaxPolicy(object):
 
     def get_action(self, obs):
         # MJ: changed the dimension check to a 3
-        # MJ: changed the dimension check to a 3
         if len(obs.shape) > 3:
             observation = obs
         else:
