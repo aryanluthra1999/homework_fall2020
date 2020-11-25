@@ -55,8 +55,7 @@ class RNDModel(nn.Module, BaseExplorationModel):
         # HINT: Remember to detach the output of self.f!
         if type(ob_no) == np.ndarray:
             ob_no = ptu.from_numpy(ob_no)
-        error = torch.abs(self.f(ob_no).detach() - self.f_hat(ob_no))
-        error = error.mean(1)
+        error = torch.norm(self.f(ob_no).detach() - self.f_hat(ob_no), dim=1)
         # print(ob_no.shape, error.shape)
 
         return error

@@ -56,7 +56,6 @@ class CQLCritic(BaseCritic):
 
         return loss, qa_t_values, q_t_values
 
-
     def update(self, ob_no, ac_na, next_ob_no, reward_n, terminal_n):
         """
             Update the parameters of the critic.
@@ -81,12 +80,16 @@ class CQLCritic(BaseCritic):
 
         loss, qa_t_values, q_t_values = self.dqn_loss(
             ob_no, ac_na, next_ob_no, reward_n, terminal_n
-            )
-        
+        )
+
+        #print(qa_t_values.shape, q_t_values.shape)
+
         # CQL Implementation
         # TODO: Implement CQL as described in the pdf and paper
         # Hint: After calculating cql_loss, augment the loss appropriately
-        cql_loss = None
+        diff = qa_t_values - q_t_values.unsqueeze(1)
+        cql_loss = torch.logsumexp(diff, dim=1).mean()
+        loss = (1 - self.cql_alpha) * loss + self.cql_alpha * cql_loss
 
         self.optimizer.zero_grad()
         loss.backward()
@@ -95,12 +98,11 @@ class CQLCritic(BaseCritic):
         info = {'Training Loss': ptu.to_numpy(loss)}
 
         # TODO: Uncomment these lines after implementing CQL
-        # info['CQL Loss'] = ptu.to_numpy(cql_loss)
-        # info['Data q-values'] = ptu.to_numpy(q_t_values).mean()
-        # info['OOD q-values'] = ptu.to_numpy(q_t_logsumexp).mean()
+        info['CQL Loss'] = ptu.to_numpy(cql_loss)
+        info['Data q-values'] = ptu.to_numpy(q_t_values).mean()
+        info['OOD q-values'] = ptu.to_numpy(torch.logsumexp(qa_t_values, dim=1)).mean()
 
         return info
-
 
     def update_target_network(self):
         for target_param, param in zip(
